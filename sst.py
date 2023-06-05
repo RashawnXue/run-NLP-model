@@ -1,12 +1,5 @@
 import argparse
-import collections
-import json
-import numpy as np
-import os
-import re
-import string
 import sys
-import transformers
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
