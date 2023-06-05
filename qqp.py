@@ -74,8 +74,8 @@ if __name__ == '__main__':
         model_name = "PavanNeerudu/t5-base-finetuned-qqp"
         nlp = pipeline('text2text-generation', model=model_name, tokenizer=model_name)
     elif OPTS.model == 'DeBERTa':
-        model_name = "deepset/deberta-v3-base-squad2"
-        nlp = pipeline('question-answering', model=model_name, tokenizer=model_name)
+        model_name = "Tomor0720/deberta-large-finetuned-qqp"
+        nlp = pipeline('text-classification', model=model_name, tokenizer=model_name)
     else:
         NameError
     main(nlp)
