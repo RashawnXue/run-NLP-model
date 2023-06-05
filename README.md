@@ -1,5 +1,5 @@
 # run-NLP-model
-> The script to run NLP model on SQuAD and sst2 dataset
+> The script to run NLP model on SQuAD, sst2 and QQP dataset 
 
 Try to run the command:
 
