@@ -15,7 +15,7 @@ def parse_args():
     parser = argparse.ArgumentParser(
         'Script for t5(https://huggingface.co/mrm8488/t5-base-finetuned-squadv2) and DeBERTa(https://huggingface.co/deepset/deberta-v3-base-squad2).\n \
         dataset: SQuAD version 2.0.\n \
-        npl task: MRC.')
+        nlp task: MRC.')
     parser.add_argument('model', metavar='model', 
                         help='Model you want to use (t5 or DeBERTa).', type=str)
     parser.add_argument('data_file', metavar='data.json',
