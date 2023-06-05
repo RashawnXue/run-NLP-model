@@ -12,13 +12,13 @@ tokenizer = None
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        'Script for t5(https://huggingface.co/mrm8488/t5-base-finetuned-squadv2) and DeBERTa(https://huggingface.co/deepset/deberta-v3-base-squad2).\n \
+        'Script for t5 and distilbert.\n \
         dataset: sst2 \n \
         nlp task: sentiment analysis.')
     parser.add_argument('model', metavar='model',
-                        help='Model you want to use (t5 or DeBERTa).', type=str)
+                        help='Model you want to use (t5 or distilbert).', type=str)
     parser.add_argument('data_file', metavar='data.json',
-                        help='Input data JSON file.')
+                        help='Input data txt file.')
     parser.add_argument('out_file', metavar='result.txt',
                         help='Write result to file.')
     parser.add_argument('amount', metavar='amount',
@@ -52,7 +52,7 @@ def distilbert_get_answer(text):
 def get_sentiment(text):
     if OPTS.model == 't5':
         return t5_get_sentiment(text)
-    elif OPTS.model == 'DeBERTa':
+    elif OPTS.model == 'distilbert':
         return distilbert_get_answer(text)
     else:
         return ''
