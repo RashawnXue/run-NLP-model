@@ -2,6 +2,7 @@ import argparse
 import sys
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 
 
@@ -15,7 +16,7 @@ def parse_args():
         dataset: sst2 \n \
         nlp task: sentiment analysis.')
     parser.add_argument('model', metavar='model',
-                        help='Model you want to use (t5 or distilbert).', type=str)
+                        help='Model you want to use (t5 or DeBERTa or distilbert).', type=str)
     parser.add_argument('data_file', metavar='data.txt',
                         help='Input data txt file.')
     parser.add_argument('out_file', metavar='result.txt',
@@ -34,11 +35,11 @@ def t5_get_sentiment(text):
     preds = model.generate(inputs)
     decoded_preds = tokenizer.batch_decode(sequences=preds, skip_special_tokens=True)
     if decoded_preds[0] == 'p':
-        return "POSITIVE"
+        return 'POSITIVE'
     elif decoded_preds[0] == 'n':
-        return "NEGATIVE"
+        return 'NEGATIVE'
     else:
-        return ""
+        return ''
 
 
 def distilbert_get_sentiment(text):
@@ -50,11 +51,28 @@ def distilbert_get_sentiment(text):
     return model.config.id2label[predicted_class_id]
 
 
+def deberta_get_sentiment(text):
+    inputs = tokenizer(text, return_tensors="pt")
+    with torch.no_grad():
+        logits = model(**inputs).logits
+
+    predicted_class_id = logits.argmax().item()
+    if model.config.id2label[predicted_class_id] == 'positive':
+        return 'POSITIVE'
+    elif model.config.id2label[predicted_class_id] == 'negative':
+        return 'NEGATIVE'
+    else:
+        return ''
+
+
+
 def get_sentiment(text):
     if OPTS.model == 't5':
         return t5_get_sentiment(text)
     elif OPTS.model == 'distilbert':
         return distilbert_get_sentiment(text)
+    elif OPTS.model == 'DeBERTa':
+        return deberta_get_sentiment(text)
     else:
         return ''
 
@@ -88,6 +106,10 @@ if __name__ == '__main__':
         model_name = "distilbert-base-uncased-finetuned-sst-2-english"
         model = DistilBertForSequenceClassification.from_pretrained(model_name)
         tokenizer = DistilBertTokenizer.from_pretrained(model_name)
+    elif OPTS.model == 'DeBERTa':
+        model_name = 'mrm8488/deberta-v3-small-finetuned-sst2'
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(model_name)
     else:
         NameError
     main()
