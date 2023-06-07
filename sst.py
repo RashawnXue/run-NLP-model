@@ -5,10 +5,10 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 
-
 OPTS = None
 model = None
 tokenizer = None
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -30,16 +30,26 @@ def parse_args():
 
 
 def t5_get_sentiment(text):
-
-    inputs = tokenizer("sentiment: " + text, max_length=128, truncation=True, return_tensors="pt").input_ids
-    preds = model.generate(inputs)
-    decoded_preds = tokenizer.batch_decode(sequences=preds, skip_special_tokens=True)
+    labels = ["p", "n"]
+    class_ids = torch.LongTensor(tokenizer(labels, padding=True).input_ids)
+    text = 'I hate you'
+    inputs = tokenizer("sentiment: " + text, max_length=128, truncation=True, return_tensors="pt")
+    preds = model.generate(inputs.input_ids.to('cpu'),
+                           attention_mask=inputs.attention_mask.to('cpu'),
+                           output_scores=True,
+                           return_dict_in_generate=True,
+                           min_length=class_ids.shape[1] + 1,
+                           max_length=class_ids.shape[1] + 1,
+                           do_sample=False)
+    scores = torch.stack(preds.scores, dim=1).to("cpu")
+    score_of_labels = scores.gather(dim=2, index=class_ids.T.expand(1, -1, -1))
+    probabilities = score_of_labels.nanmean(dim=2).softmax(1)
+    decoded_preds = tokenizer.batch_decode(sequences=preds[0], skip_special_tokens=True)
+    print(f'negative probabilities:{probabilities[0][0].item()}, positive probabilities:{probabilities[0][1].item()}')
     if decoded_preds[0] == 'p':
         return 'POSITIVE'
-    elif decoded_preds[0] == 'n':
-        return 'NEGATIVE'
     else:
-        return ''
+        return 'NEGATIVE'
 
 
 def distilbert_get_sentiment(text):
@@ -63,7 +73,6 @@ def deberta_get_sentiment(text):
         return 'NEGATIVE'
     else:
         return ''
-
 
 
 def get_sentiment(text):

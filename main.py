@@ -11,12 +11,13 @@ from transformers import pipeline
 
 OPTS = None
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         'Script for t5(https://huggingface.co/mrm8488/t5-base-finetuned-squadv2) and DeBERTa(https://huggingface.co/deepset/deberta-v3-base-squad2).\n \
         dataset: SQuAD version 2.0.\n \
         nlp task: MRC.')
-    parser.add_argument('model', metavar='model', 
+    parser.add_argument('model', metavar='model',
                         help='Model you want to use (t5 or DeBERTa).', type=str)
     parser.add_argument('data_file', metavar='data.json',
                         help='Input data JSON file.')
@@ -29,6 +30,7 @@ def parse_args():
         sys.exit(1)
     return parser.parse_args()
 
+
 def t5_get_answer(question, context, nlp):
     input_text = f"question: {question}  context: {context}"
     res = nlp(input_text)
@@ -36,6 +38,7 @@ def t5_get_answer(question, context, nlp):
         return res[0]['generated_text']
     else:
         return ''
+
 
 def deberta_get_answer(question, context, nlp):
     QA_input = {
@@ -48,6 +51,7 @@ def deberta_get_answer(question, context, nlp):
     else:
         return ''
 
+
 def get_answer(question, context, nlp):
     if OPTS.model == 't5':
         return t5_get_answer(question, context, nlp)
@@ -55,6 +59,7 @@ def get_answer(question, context, nlp):
         return deberta_get_answer(question, context, nlp)
     else:
         return ''
+
 
 def main(nlp):
     with open(OPTS.data_file) as f:
@@ -70,9 +75,10 @@ def main(nlp):
                     answer = get_answer(question, context, nlp)
                     i += 1
                     print(f'complete: {i} answer: {answer}')
-                    f.write(answer+'\n')
+                    f.write(answer + '\n')
                     if (i >= OPTS.amount):
-                        return 
+                        return
+
 
 if __name__ == '__main__':
     OPTS = parse_args()
