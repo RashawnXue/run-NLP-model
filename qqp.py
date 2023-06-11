@@ -15,10 +15,12 @@ def parse_args():
                         help='Model you want to use (t5 or DeBERTa).', type=str)
     parser.add_argument('data_file', metavar='data.tsv',
                         help='Input data tsv file.')
-    parser.add_argument('out_file', metavar='result.txt',
+    parser.add_argument('out_file', metavar='result.tsv',
                         help='Write result to file.')
-    parser.add_argument('amount', metavar='amount',
-                        help='Amount of sentence pairs you want to test.', type=int)
+    parser.add_argument('begin_index', metavar='index_begin',
+                        help='Begin index you want to test.', type=int)
+    parser.add_argument('end_index', metavar='index_begin',
+                        help='End index you want to test.', type=int)
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
@@ -58,24 +60,31 @@ def main(nlp):
             if len(row) > 1 :
                 row = [','.join(row)]
             dataset.append(row)
-    dataset = dataset[0:]
-    with open(OPTS.out_file, 'w') as f:
-        for i in range(len(dataset)):
-            if i >= OPTS.amount:
-                f.close()
-                return
+    with open(OPTS.out_file, 'a') as f:
+        index = 1
+        tsv_w = csv.writer(f, delimiter='\t')
+        tsv_w.writerow(['id', 'text_a', 'text_b', 'label'])    
+        end_index = OPTS.end_index if len(dataset) >= OPTS.end_index+1 else len(dataset)
+        for i in range(OPTS.begin_index, end_index):
+            # if i >= OPTS.amount:
+            #     f.close()
+            #     return
             dataline = dataset[i][0].split('\t')
-            res = get_label(dataline[3], dataline[4], nlp)
-            f.write(res + '\n')
+            res = get_label(dataline[0], dataline[1], nlp)
+            print(str(index) + '/' + str(i))
+            if res == 'duplicate':
+                # f.write(res + '\n')
+                tsv_w.writerow([str(index), dataline[0], dataline[1], '1'])
+                index += 1
 
 if __name__ == '__main__':
     OPTS = parse_args()
     if OPTS.model == 't5':
         model_name = "PavanNeerudu/t5-base-finetuned-qqp"
-        nlp = pipeline('text2text-generation', model=model_name, tokenizer=model_name)
+        nlp = pipeline('text2text-generation', model=model_name, tokenizer=model_name, device=0)
     elif OPTS.model == 'DeBERTa':
         model_name = "Tomor0720/deberta-large-finetuned-qqp"
-        nlp = pipeline('text-classification', model=model_name, tokenizer=model_name)
+        nlp = pipeline('text-classification', model=model_name, tokenizer=model_name, device=0)
     else:
         NameError
     main(nlp)
